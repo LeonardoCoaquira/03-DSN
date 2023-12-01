@@ -42,21 +42,18 @@ def upload():
         # Cargar el archivo CSV en un DataFrame de pandas
         ratings = pd.read_csv(file)
 
-        # Crear la gráfica Plotly
-        data = ratings['rating'].value_counts().sort_index(ascending=False)
-
-        trace = go.Bar(
-            x=data.index,
-            text=['{:.1f} %'.format(val) for val in (data.values / ratings.shape[0] * 100)],
-            textposition='auto',
-            textfont=dict(color='#000000'),
-            y=data.values,
-        )
-
-        # Crear el diseño del gráfico
-        layout = dict(title='Distribution Of {} ratings'.format(ratings.shape[0]),
-                      xaxis=dict(title='Rating'),
-                      yaxis=dict(title='Count'))
+        data = ratings.groupby('userId')['rating'].count().clip(upper=50)
+        # Create trace
+        trace = go.Histogram(x = data.values,
+                            name = 'Ratings',
+                            xbins = dict(start = 0,
+                                        end = 50,
+                                        size = 2))
+        # Create layout
+        layout = go.Layout(title = 'Distribution Of Number of Ratings Per Item (Clipped at 50)',
+                        xaxis = dict(title = 'Number of Ratings Per Item'),
+                        yaxis = dict(title = 'Count'),
+                        bargap = 0.2)
 
         # Convertir la figura de Plotly en una imagen PNG
         fig = go.Figure(data=[trace], layout=layout)
